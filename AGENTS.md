@@ -1,5 +1,250 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+---
+name: linkshortener-project-standards
+description: Coding standards, best practices, and architectural guidelines for the Link Shortener project. Use when implementing features, fixing bugs, reviewing code, or making architectural decisions. All LLM contributions must follow these standards.
+applyTo: "**/*.{ts,tsx,js,jsx,css}"
+---
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+# Link Shortener Project - Agent Instructions
+
+This document defines the comprehensive coding standards, best practices, and architectural guidelines for the Link Shortener project. All code contributions must adhere to these standards to maintain consistency, quality, and maintainability.
+
+## Project Overview
+
+- **Framework**: Next.js 16.2.4 with App Router
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS v4 + Shadcn UI
+- **Database**: PostgreSQL (Neon) with Drizzle ORM
+- **Authentication**: Clerk
+- **UI Components**: Shadcn UI + custom components
+- **Package Manager**: npm
+
+## ⚠️ CRITICAL REQUIREMENT
+
+**BEFORE generating ANY code, you MUST read the relevant instruction files in the `/docs` directory.** This is not optional. Each documentation file contains essential best practices, patterns, and requirements that must be followed. Failure to reference these files will result in code that does not meet project standards.
+
+## Quick Navigation
+
+The following specialized instruction files provide **MANDATORY** detailed guidance on specific topics. You MUST consult the relevant modular documentation in the '/docs' directory for **EVERY CODE GENERATION TASK**. **ALWAYS read the relevant .md file BEFORE generating ANY code. This is non-negotiable:**
+
+- **[Authentication & Authorization](/docs/authentication.md)** — Clerk integration, protected routes, modal sign in/sign up flows, and API authentication
+- **[Shadcn UI Components](/docs/shadcn-ui-components.md)** — Standard requirement to use Shadcn UI for all UI elements; never create custom components
+
+## Core Principles
+
+### 1. Type Safety First
+- TypeScript strict mode is enforced
+- All functions must have explicit return types
+- No implicit `any` types allowed
+- Leverage union types and discriminated unions for better type safety
+
+### 2. Server Components by Default
+- Use Server Components for data fetching and page rendering
+- Mark Client Components with `'use client'` only when necessary
+- Minimize client-side JavaScript bundle size
+
+### 3. Utility-First Styling
+- Use Tailwind CSS utility classes exclusively
+- Avoid writing custom CSS unless absolutely necessary
+- Use `cn()` utility for conditional and merged classes
+- Support responsive design with mobile-first approach
+
+### 4. Database-Driven Development
+- All data operations go through Drizzle ORM
+- Type-safe queries with zero implicit `any` types
+- Proper indexing and foreign key relationships
+- Transaction support for multi-step operations
+
+### 5. Component Reusability
+- Break features into smaller, composable components
+- Separate concerns: UI components vs feature components vs pages
+- Use Shadcn UI for common UI patterns
+- Export both styled and unstyled variants where applicable
+
+### 6. Security & Authentication
+- All sensitive operations require Clerk authentication
+- Validate all user input before database operations
+- Use parameterized queries (Drizzle handles this automatically)
+- Never commit secrets or sensitive environment variables
+
+
+## When Fixing Bugs
+
+1. **📖 READ /docs FILES FIRST** → Consult relevant instruction files in `/docs` directory before making ANY changes
+2. **Identify the Layer** → Is it database, component, styling, or type-related?
+3. **Check Relevant Standard** → Reference the appropriate standards document AND relevant `/docs` files
+4. **Verify TypeScript Compliance** → Ensure no type errors
+5. **Test the Fix** → Verify the fix doesn't break other functionality
+6. **Follow Code Style** → Match the project's conventions
+
+## Code Organization
+
+### Files
+- Use kebab-case for filenames: `user-service.ts`, `login-form.tsx`
+- Group related files in directories: `components/dashboard/`, `lib/auth/`
+- Keep files focused and under 300 lines when possible
+
+### Imports
+```typescript
+// Order: external → absolute (@/*) → relative
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { userService } from './user-service';
+```
+
+### Exports
+- Use named exports for better tree-shaking
+- Default exports only for page components and layout files
+- Export types separately from implementations
+
+## TypeScript Enforced Rules
+
+- Strict mode: `"strict": true`
+- No implicit any: `"noImplicitAny": true`
+- ESNext target with Node module resolution
+- Path aliases: `@/*` maps to project root
+
+## ESLint Configuration
+
+The project uses ESLint with Next.js recommended config. All code must pass linting:
+- Run `npm run lint` to check
+- Fix issues before committing
+- Follow ESLint-config-next standards
+
+## Common Patterns
+
+### Handling Async Operations
+```typescript
+// Server Component - async/await directly
+async function UserProfile({ id }: { id: string }) {
+  const user = await db.query.users.findFirst({ where: { id } });
+  if (!user) return <NotFound />;
+  return <div>{user.name}</div>;
+}
+
+// Client Component - useEffect pattern
+'use client';
+function UserList() {
+  const [users, setUsers] = useState<User[]>([]);
+  useEffect(() => {
+    fetch('/api/users').then(r => r.json()).then(setUsers);
+  }, []);
+  return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
+
+### Conditional Styling
+```typescript
+import { cn } from '@/lib/utils';
+
+<button className={cn(
+  'px-4 py-2 rounded transition-colors',
+  isActive && 'bg-blue-600 text-white',
+  !isActive && 'bg-gray-200 text-gray-900',
+  className
+)}>
+  Click me
+</button>
+```
+
+### Database Queries
+```typescript
+// Eager loading with relations
+const user = await db.query.users.findFirst({
+  where: eq(users.id, userId),
+  with: {
+    shortLinks: {
+      orderBy: desc(shortLinks.createdAt),
+    },
+  },
+});
+
+// Safe mutations with transactions
+await db.transaction(async (tx) => {
+  await tx.insert(users).values(userData);
+  await tx.insert(shortLinks).values(linkData);
+});
+```
+
+## Naming Conventions
+
+| Category | Convention | Example |
+|----------|-----------|---------|
+| Files | kebab-case | `user-service.ts` |
+| Directories | kebab-case | `components/dashboard/` |
+| Components | PascalCase | `UserCard.tsx` |
+| Functions | camelCase | `getShortCode()` |
+| Variables | camelCase | `userService` |
+| Constants | UPPER_SNAKE_CASE | `MAX_URL_LENGTH` |
+| Types/Interfaces | PascalCase | `User`, `IAuthProvider` |
+| Boolean variables | `is` or `has` prefix | `isLoading`, `hasError` |
+
+## Performance Guidelines
+
+- ✅ Use Server Components for data fetching
+- ✅ Use `next/image` for all images
+- ✅ Implement proper caching strategies
+- ✅ Use `React.memo` for expensive components only
+- ✅ Lazy load heavy components with `dynamic()`
+- ❌ Don't fetch data in Client Components when possible
+- ❌ Don't render large lists without virtualization
+- ❌ Don't inline large objects in render methods
+
+## Accessibility Standards
+
+- Use semantic HTML (`<button>`, `<nav>`, `<section>`)
+- Provide `alt` text for all images
+- Include `aria-label` for screen readers where needed
+- Ensure keyboard navigation support
+- Maintain WCAG AA color contrast minimum
+- Use `htmlFor` on labels linked to inputs
+
+## Testing Considerations
+
+- Write components to be testable
+- Avoid tight coupling to external services
+- Use dependency injection for services
+- Export test-friendly variants of components
+- Mock API calls in tests
+
+## Git Workflow
+
+- **Commit messages**: Be descriptive and concise
+- **Feature branches**: Use `feature/` prefix for new features
+- **Bug fixes**: Use `fix/` prefix
+- **Code review**: All PRs should be reviewed before merging
+- **Standards check**: Ensure code passes TypeScript, ESLint, and follows this guide
+
+## Common Mistakes to Avoid
+
+| ❌ Avoid | ✅ Do Instead |
+|----------|---------------|
+| Generating code WITHOUT reading `/docs` files first | **ALWAYS** consult relevant `/docs` files BEFORE writing any code |
+| `const x: any = value` | `const x: SomeType = value` |
+| Mixing Server/Client logic | Separate concerns clearly |
+| Custom CSS everywhere | Use Tailwind utilities |
+| Untyped function parameters | Add explicit types |
+| N+1 database queries | Use eager loading with `with:` |
+| Conditional hooks | Move logic to custom hook |
+| Inline styled objects | Use className and Tailwind |
+| Forgot `'use client'` on interactive components | Use `'use client'` for interactivity |
+| Database queries without WHERE | Always add WHERE conditions |
+| Uncommitted secrets | Add to `.env.local` (not committed) |
+
+## Resources
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Drizzle ORM Documentation](https://orm.drizzle.team/)
+- [Clerk Documentation](https://clerk.com/docs)
+- [Shadcn UI Documentation](https://ui.shadcn.com/)
+- [React Documentation](https://react.dev)
+
+## Questions or Improvements?
+
+If you find areas where this guide needs clarification or if you discover better patterns, update the relevant documentation file and ensure all team members are aware of the change.
+
+---
+
+**Last Updated**: May 5, 2026  
+**Version**: 1.0.0
