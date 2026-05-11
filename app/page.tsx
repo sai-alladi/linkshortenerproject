@@ -217,8 +217,8 @@ export default function Home() {
       </footer>
 
       {/* Auth Modals */}
-      {showSignIn && <SignInModal />}
-      {showSignUp && <SignUpModal />}
+      {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
+      {showSignUp && <SignUpModal onClose={() => setShowSignUp(false)} />}
     </div>
   );
 }
