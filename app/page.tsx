@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { SignInModal } from '@/components/auth/sign-in-modal';
+import { SignUpModal } from '@/components/auth/sign-up-modal';
 import {
   Link as LinkIcon,
   Zap,
@@ -53,6 +55,8 @@ const features = [
 export default function Home() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(false);
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
@@ -87,14 +91,14 @@ export default function Home() {
           <div className="flex gap-3">
             <Button
               variant="outline"
-              onClick={() => router.push('/sign-in')}
+              onClick={() => setShowSignIn(true)}
             >
               Sign In
             </Button>
             <Button
-              onClick={() => router.push('/sign-up')}
+              onClick={() => setShowSignUp(true)}
             >
-              Get Started
+              Sign Up
             </Button>
           </div>
         </div>
@@ -116,23 +120,6 @@ export default function Home() {
             Create short, memorable links and track their performance in real-time. Perfect for
             marketing campaigns, social media, and sharing with friends.
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-            <Button
-              size="lg"
-              onClick={() => router.push('/sign-up')}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Start Shortening Now
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-            >
-              Watch Demo
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -228,6 +215,10 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Auth Modals */}
+      {showSignIn && <SignInModal />}
+      {showSignUp && <SignUpModal />}
     </div>
   );
 }
