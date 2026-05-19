@@ -1,4 +1,7 @@
-# Shadcn UI Components Standard
+---
+description: Read this before creating or modifying any UI components in the Link Shortener project.  
+---
+# UI Components Standard
 
 This document establishes the mandatory standard for all UI component usage in the Link Shortener project. **All UI elements MUST use Shadcn UI components. Do not create custom components.**
 

@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, varchar, integer, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import { InferSelectModel } from 'drizzle-orm';
 
 export const shortLinks = pgTable(
   'short_links',
@@ -16,3 +17,5 @@ export const shortLinks = pgTable(
     index('idx_user_id_deleted_at').on(table.userId, table.deletedAt),
   ]
 );
+
+export type SelectShortLink = InferSelectModel<typeof shortLinks>;

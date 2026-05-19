@@ -1,3 +1,7 @@
+---
+description: This file defines authentication and authorization patterns for the Link Shortener project,Read this before implementing or modifying authentication in the project.
+---
+
 # Authentication & Authorization Guide
 
 This document defines authentication and authorization patterns for the Link Shortener project. All authentication must be handled exclusively through Clerk — no alternative authentication methods are permitted.
